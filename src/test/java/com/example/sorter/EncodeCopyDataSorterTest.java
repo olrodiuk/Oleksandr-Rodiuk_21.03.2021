@@ -2,6 +2,8 @@ package com.example.sorter;
 
 import com.example.Application;
 import com.example.loader.data.MySqlFileDirectoryRecord;
+import com.example.loader.data.SortCategory;
+import com.example.loader.data.TreeNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -9,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.loader.data.SortCategory.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class EncodeCopyDataSorterTest {
@@ -27,26 +30,27 @@ class EncodeCopyDataSorterTest {
     MySqlFileDirectoryRecord f2 = new MySqlFileDirectoryRecord(3, "d1/d2/f2.tif", 2L, false);
     MySqlFileDirectoryRecord fn = new MySqlFileDirectoryRecord(4, "d1/d2/f-n.tif", 3L, false);
 
-    List<MySqlFileDirectoryRecord> data = Application.setRelationShips(Arrays.asList(d1, f1, d2, f2, fn));
+    List<TreeNode> data = Application.buildFSTree(Arrays.asList(d1, f1, d2, f2, fn));
 
-    Map<Integer, Iterable<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
+    Map<SortCategory, List<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
 
     Application.printResult(result);
 
     // f1, d2
     assertIterableEquals(
-        Arrays.asList(f1, d2),
-        result.get(EncodeCopyDataSorter.TO_ENCODE_KEY)
+            Arrays.asList(f1, d2),
+            result.get(TO_ENCODE)
     );
 
     // TO_COPY_KEY list is empty
-    assertFalse(result.get(EncodeCopyDataSorter.TO_COPY_KEY).iterator().hasNext());
+    assertFalse(result.get(TO_COPY).iterator().hasNext());
   }
 
   @Test
   void test2() {
 
-        /*d1/
+        /*
+            d1/
             d1/f1.mov
             d1/f3.txt
             d1/d2
@@ -65,22 +69,22 @@ class EncodeCopyDataSorterTest {
     MySqlFileDirectoryRecord d3 = new MySqlFileDirectoryRecord(6, "d1/d2/d3", 3L, true);
     MySqlFileDirectoryRecord f4 = new MySqlFileDirectoryRecord(7, "d1/d2/d3/f4.pdf", 6L, false);
 
-    List<MySqlFileDirectoryRecord> data = Application.setRelationShips(Arrays.asList(d1, f1, f3, d2, f2, fn, d3, f4));
+    List<TreeNode> data = Application.buildFSTree(Arrays.asList(d1, f1, f3, d2, f2, fn, d3, f4));
 
-    Map<Integer, Iterable<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
+    Map<SortCategory, List<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
 
     Application.printResult(result);
 
     // f1, d2
     assertIterableEquals(
-        Arrays.asList(f1, d2),
-        result.get(EncodeCopyDataSorter.TO_ENCODE_KEY)
+            Arrays.asList(f1, d2),
+            result.get(TO_ENCODE)
     );
 
     // f3
     assertIterableEquals(
-        Collections.singletonList(f3),
-        result.get(EncodeCopyDataSorter.TO_COPY_KEY)
+            Collections.singletonList(f3),
+            result.get(TO_COPY)
     );
 
   }
@@ -102,19 +106,19 @@ class EncodeCopyDataSorterTest {
     MySqlFileDirectoryRecord d3 = new MySqlFileDirectoryRecord(6, "d1/d2/d3", 3L, true);
     MySqlFileDirectoryRecord f4 = new MySqlFileDirectoryRecord(7, "d1/d2/d3/f4.pdf", 6L, false);
 
-    List<MySqlFileDirectoryRecord> data = Application.setRelationShips(Arrays.asList(d1, f3, d2, d3, f4));
+    List<TreeNode> data = Application.buildFSTree(Arrays.asList(d1, f3, d2, d3, f4));
 
-    Map<Integer, Iterable<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
+    Map<SortCategory, List<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
 
     Application.printResult(result);
 
-    // TO_COPY_KEY list is empty
-    assertFalse(result.get(EncodeCopyDataSorter.TO_ENCODE_KEY).iterator().hasNext());
+    // TO_ENCODE list is empty
+    assertFalse(result.get(TO_ENCODE).iterator().hasNext());
 
     // d1
     assertIterableEquals(
-        Collections.singletonList(d1),
-        result.get(EncodeCopyDataSorter.TO_COPY_KEY)
+            Collections.singletonList(d1),
+            result.get(TO_COPY)
     );
   }
 
@@ -156,23 +160,23 @@ class EncodeCopyDataSorterTest {
     MySqlFileDirectoryRecord d8 = new MySqlFileDirectoryRecord(15, "d0/d7/d8", 14L, true);
     MySqlFileDirectoryRecord f7 = new MySqlFileDirectoryRecord(16, "d0/d7/d8/f7.xml", 15L, false);
 
-    List<MySqlFileDirectoryRecord> data = Application.setRelationShips(
-        Arrays.asList(d0, d1, f1, f3, d2, f2, fn, d3, f4, d4, f5, d5, d6, f6, d7, d8, f7));
+    List<TreeNode> data = Application.buildFSTree(
+            Arrays.asList(d0, d1, f1, f3, d2, f2, fn, d3, f4, d4, f5, d5, d6, f6, d7, d8, f7));
 
-    Map<Integer, Iterable<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
+    Map<SortCategory, List<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
 
     Application.printResult(result);
 
     // f1, d2
     assertIterableEquals(
-        Arrays.asList(f1, d2),
-        result.get(EncodeCopyDataSorter.TO_ENCODE_KEY)
+            Arrays.asList(f1, d2),
+            result.get(TO_ENCODE)
     );
 
     // f3
     assertIterableEquals(
-        Arrays.asList(f3, d4, d7),
-        result.get(EncodeCopyDataSorter.TO_COPY_KEY)
+            Arrays.asList(f3, d4, d7),
+            result.get(TO_COPY)
     );
   }
 
@@ -216,23 +220,24 @@ class EncodeCopyDataSorterTest {
     MySqlFileDirectoryRecord d10 = new MySqlFileDirectoryRecord(18, "d0/d7/d8/d9/d10", 17L, true);
     MySqlFileDirectoryRecord f8 = new MySqlFileDirectoryRecord(19, "d0/d7/d8/d9/d10/f8.xml", 18L, false);
 
-    List<MySqlFileDirectoryRecord> data = Application.setRelationShips(
-        Arrays.asList(d0, d1, f1, f3, d2, f2, fn, d3, f4, d4, f5, d5, d6, f6, d7, d8, f7, d9, d10, f8));
+    List<TreeNode> data = Application.buildFSTree(
+            Arrays.asList(d0, d1, f1, f3, d2, f2, fn, d3, f4, d4, f5, d5, d6, f6, d7, d8, f7, d9, d10, f8));
 
-    Map<Integer, Iterable<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
+    Map<SortCategory, List<MySqlFileDirectoryRecord>> result = new EncodeCopyDataSorter().sort(data);
 
     Application.printResult(result);
 
     // f1, d2
     assertIterableEquals(
-        Arrays.asList(f1, d2),
-        result.get(EncodeCopyDataSorter.TO_ENCODE_KEY)
+            Arrays.asList(f1, d2),
+            result.get(TO_ENCODE)
     );
 
     // f3
     assertIterableEquals(
-        Arrays.asList(f3, d4, d7),
-        result.get(EncodeCopyDataSorter.TO_COPY_KEY)
+            Arrays.asList(f3, d4, d7),
+            result.get(TO_COPY)
     );
   }
+
 }
